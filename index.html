@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cause they're a pain</title>
+        <style>
+            body {
+                font-family: times new roman, serif;
+                background-color: #000;
+                color: #fff;
+            }
+        </style>
+        <script>
+            const urlParams = new URLSearchParams(window.location.search);
+            const timezones = urlParams.get('timezones').split(',');
+            const labels = urlParams.get('labels').split(',');
+
+            function consoleTimes(time) {
+                const timezonesContainer = document.getElementById('timezones');
+                const parentDiv = document.createElement('div');
+                for (let i = 0; i < timezones.length; i++) {
+                    const timezone = timezones[i];
+                    const label = labels[i];
+                    const div = document.createElement('div');
+                    const dateArray = `${new Intl.DateTimeFormat('en-US', {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        second: "numeric",
+                        hour12: false,
+                        timeZone: timezone,
+                    }).format(time)}`.split(' at ');
+
+                    const dayComponent = dateArray[0];
+                    const timeComponent = dateArray[1];
+
+                    const template = document.getElementById('timezone-template').content.cloneNode(true);
+                    template.querySelector('.label').textContent = label;
+                    template.querySelector('.day').textContent = dayComponent;
+                    template.querySelector('.time').textContent = timeComponent;
+                    parentDiv.appendChild(template);
+                }
+                timezonesContainer.innerHTML = parentDiv.innerHTML;
+            }
+
+            setInterval(() => {
+                consoleTimes(new Date());
+            }, 1000);
+        </script>
+    </head>
+    <body>
+        <div id="timezones"></div>
+    </body>
+    <template id="timezone-template">
+        <div class="timezone-entry">
+            <div>
+                <span class="label"></span>
+            </div>
+            <div>
+                <span class="time"></span>
+            </div>
+            <div>
+                <span class="day"></span>
+            </div>
+        </div>
+
+    </template>
+</html>
