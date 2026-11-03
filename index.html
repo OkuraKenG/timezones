@@ -9,13 +9,53 @@
                 font-family: times new roman, serif;
                 background-color: #000;
                 color: #fff;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            .timezone-entry {
+                margin-bottom: 10px;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+
+                .time {
+                    font-size: 2.5em;
+                }
+
+                .day {
+                    font-size: 0.8em;
+                }
+
+             
+            }
+
+            hr {
+                border: 0;
+                border-top: 0.5px solid #ffffff58;
+                width: 25%;
+            }
+
+            .question {
+                margin-top: 0px;
+                margin-bottom: 0px;
+            }
+            .answer {
+                font-size: 0.7em;
+                margin-top: 5px
+            }
+
+            .me {
+                color: rgb(231, 129, 124);
             }
         </style>
         <script>
             const urlParams = new URLSearchParams(window.location.search);
-            const timezones = urlParams.get('timezones').split(',');
-            const labels = urlParams.get('labels').split(',');
-
+            const timezones = urlParams.get('timezones') ? urlParams.get('timezones').split(',') : ['UTC'];
+            const labels = urlParams.get('labels') ? urlParams.get('labels').split(',') : ['UTC'];
+            const me = urlParams.get('me') ?? 'UTC';
+ 
             function consoleTimes(time) {
                 const timezonesContainer = document.getElementById('timezones');
                 const parentDiv = document.createElement('div');
@@ -41,6 +81,13 @@
                     template.querySelector('.label').textContent = label;
                     template.querySelector('.day').textContent = dayComponent;
                     template.querySelector('.time').textContent = timeComponent;
+
+                    if (timezone === me) {
+                        console.log('This is my timezone:', timezone);
+                        console.log('Template element:', template);
+                        console.log('Timezone entry element:', template.querySelector('.timezone-entry'));
+                        template.querySelector('.timezone-entry').classList.add('me');
+                    }
                     parentDiv.appendChild(template);
                 }
                 timezonesContainer.innerHTML = parentDiv.innerHTML;
@@ -48,14 +95,27 @@
 
             setInterval(() => {
                 consoleTimes(new Date());
-            }, 1000);
+            }, 500);
         </script>
     </head>
     <body>
         <div id="timezones"></div>
+
+        <hr/>
+
+        <h3>FAQ</h3>
+
+        <div class="question">Why is this needed?</div>
+        <p class="answer">Because I'm to lazy to do the math.</p>
+
+        <div class="question">Is it accurate?</div>
+        <p class="answer">Nope, it's not guaranteed.</p>
+
     </body>
     <template id="timezone-template">
         <div class="timezone-entry">
+            <hr/>
+
             <div>
                 <span class="label"></span>
             </div>
