@@ -1,4 +1,5 @@
 # Timezone Util
+Not meant to be good, just meant to work.
 
 ## Query params 
 - timezones -> list of IATA 
