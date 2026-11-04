@@ -51,6 +51,12 @@
             }
         </style>
         <script>
+            // cache all the SVG assets for the time digits and dots
+            for (let i = 0; i <= 9; i++) {
+                new Image().src = `assets/${i}.svg`;
+            }
+            new Image().src = `assets/on-dot.svg`;
+
             const urlParams = new URLSearchParams(window.location.search);
             const timezones = urlParams.get('timezones') ? urlParams.get('timezones').split(',') : ['UTC'];
             const labels = urlParams.get('labels') ? urlParams.get('labels').split(',') : ['UTC'];
@@ -80,12 +86,17 @@
                     const template = document.getElementById('timezone-template').content.cloneNode(true);
                     template.querySelector('.label').textContent = label;
                     template.querySelector('.day').textContent = dayComponent;
-                    template.querySelector('.time').textContent = timeComponent;
+
+                    const [hours, minutes, seconds] = timeComponent.split(':');
+                    template.querySelector('#h0').src = `assets/${hours[0]}.svg`;
+                    template.querySelector('#h1').src = `assets/${hours[1]}.svg`;
+                    template.querySelector('#m0').src = `assets/${minutes[0]}.svg`;
+                    template.querySelector('#m1').src = `assets/${minutes[1]}.svg`;
+                    template.querySelector('#s0').src = `assets/${seconds[0]}.svg`;
+                    template.querySelector('#s1').src = `assets/${seconds[1]}.svg`;
+                    template.querySelectorAll('#dot').forEach(dot => dot.src = `assets/on-dot.svg`);
 
                     if (timezone === me) {
-                        console.log('This is my timezone:', timezone);
-                        console.log('Template element:', template);
-                        console.log('Timezone entry element:', template.querySelector('.timezone-entry'));
                         template.querySelector('.timezone-entry').classList.add('me');
                     }
                     parentDiv.appendChild(template);
@@ -95,7 +106,7 @@
 
             setInterval(() => {
                 consoleTimes(new Date());
-            }, 500);
+            }, 1000);
         </script>
     </head>
     <body>
@@ -120,7 +131,14 @@
                 <span class="label"></span>
             </div>
             <div>
-                <span class="time"></span>
+                <img id="h0" src="assets/0.svg" height="60" />
+                <img id="h1" src="assets/0.svg" height="60" />
+                <img id="dot" src="assets/on-dot.svg" height="60" />
+                <img id="m0" src="assets/0.svg" height="60" />
+                <img id="m1" src="assets/0.svg" height="60" />
+                <img id="dot" src="assets/on-dot.svg" height="60" />
+                <img id="s0" src="assets/0.svg" height="60" />
+                <img id="s1" src="assets/0.svg" height="60" />
             </div>
             <div>
                 <span class="day"></span>
