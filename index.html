@@ -51,11 +51,20 @@
             }
         </style>
         <script>
-            // cache all the SVG assets for the time digits and dots
-            for (let i = 0; i <= 9; i++) {
-                new Image().src = `assets/${i}.svg`;
-            }
-            new Image().src = `assets/on-dot.svg`;
+            const imageSources = [
+                ...Array.from({ length: 10 }, (_, i) => `assets/${i}.svg`),
+                'assets/on-dot.svg',
+            ];
+            const loadedImages = new Set();
+            const imageLoading = Promise.all(imageSources.map(source => new Promise(resolve => {
+                const image = new Image();
+                image.onload = () => {
+                    loadedImages.add(source);
+                    resolve();
+                };
+                image.onerror = () => resolve();
+                image.src = source;
+            })));
 
             const urlParams = new URLSearchParams(window.location.search);
             const timezones = urlParams.get('timezones') ? urlParams.get('timezones').split(',') : ['UTC'];
@@ -64,11 +73,10 @@
  
             function consoleTimes(time) {
                 const timezonesContainer = document.getElementById('timezones');
-                const parentDiv = document.createElement('div');
+
                 for (let i = 0; i < timezones.length; i++) {
                     const timezone = timezones[i];
                     const label = labels[i] ? labels[i] : timezone;
-                    const div = document.createElement('div');
                     const dateArray = `${new Intl.DateTimeFormat('en-US', {
                         year: "numeric",
                         month: "long",
@@ -83,30 +91,42 @@
                     const dayComponent = dateArray[0];
                     const timeComponent = dateArray[1];
 
-                    const template = document.getElementById('timezone-template').content.cloneNode(true);
-                    template.querySelector('.label').textContent = label;
-                    template.querySelector('.day').textContent = dayComponent;
+                    let entry = timezonesContainer.children[i];
+                    if (!entry) {
+                        entry = document.getElementById('timezone-template').content.cloneNode(true).firstElementChild;
+                        timezonesContainer.appendChild(entry);
+                    }
+
+                    entry.querySelector('.label').textContent = label;
+                    entry.querySelector('.day').textContent = dayComponent;
 
                     const [hours, minutes, seconds] = timeComponent.split(':');
-                    template.querySelector('#h0').src = `assets/${hours[0]}.svg`;
-                    template.querySelector('#h1').src = `assets/${hours[1]}.svg`;
-                    template.querySelector('#m0').src = `assets/${minutes[0]}.svg`;
-                    template.querySelector('#m1').src = `assets/${minutes[1]}.svg`;
-                    template.querySelector('#s0').src = `assets/${seconds[0]}.svg`;
-                    template.querySelector('#s1').src = `assets/${seconds[1]}.svg`;
-                    template.querySelectorAll('#dot').forEach(dot => dot.src = `assets/on-dot.svg`);
+                    const digits = [
+                        ['#h0', hours[0]],
+                        ['#h1', hours[1]],
+                        ['#m0', minutes[0]],
+                        ['#m1', minutes[1]],
+                        ['#s0', seconds[0]],
+                        ['#s1', seconds[1]],
+                    ];
+                    for (const [selector, digit] of digits) {
+                        const source = `assets/${digit}.svg`;
+                        if (loadedImages.has(source)) {
+                            entry.querySelector(selector).src = source;
+                        }
+                    }
 
                     if (timezone === me) {
-                        template.querySelector('.timezone-entry').classList.add('me');
+                        entry.classList.add('me');
                     }
-                    parentDiv.appendChild(template);
                 }
-                timezonesContainer.innerHTML = parentDiv.innerHTML;
             }
 
-            setInterval(() => {
+            document.addEventListener('DOMContentLoaded', async () => {
+                await imageLoading;
                 consoleTimes(new Date());
-            }, 1000);
+                setInterval(() => consoleTimes(new Date()), 1000);
+            });
         </script>
     </head>
     <body>
