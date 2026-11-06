@@ -68,28 +68,34 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const timezones = urlParams.get('timezones') ? urlParams.get('timezones').split(',') : ['UTC'];
-            const labels = urlParams.get('labels') ? urlParams.get('labels').split(',') : ['UTC'];
+            const labels = urlParams.get('labels') ? urlParams.get('labels').split(',') : [];
             const me = urlParams.get('me') ?? 'UTC';
  
-            function consoleTimes(time) {
+            function consoleTimes(time, onOff) {
                 const timezonesContainer = document.getElementById('timezones');
+                const onOrOff = onOff ? 'on' : 'off';
 
                 for (let i = 0; i < timezones.length; i++) {
                     const timezone = timezones[i];
                     const label = labels[i] ? labels[i] : timezone;
-                    const dateArray = `${new Intl.DateTimeFormat('en-US', {
+                    const formatter = new Intl.DateTimeFormat(undefined, {
                         year: "numeric",
-                        month: "long",
+                        month: "numeric",
                         day: "numeric",
                         hour: "numeric",
                         minute: "numeric",
                         second: "numeric",
                         hour12: false,
                         timeZone: timezone,
-                    }).format(time)}`.split(' at ');
+                    })
 
-                    const dayComponent = dateArray[0];
-                    const timeComponent = dateArray[1];
+                    const parts = formatter.formatToParts(new Date());
+                    const month  = parts.find(p => p.type === 'month').value.padStart(2, '0');
+                    const day = parts.find(p => p.type === 'day').value.padStart(2, '0');
+                    const year = parts.find(p => p.type === 'year').value;
+                    const hours = parts.find(p => p.type === 'hour').value;
+                    const minutes = parts.find(p => p.type === 'minute').value;
+                    const seconds = parts.find(p => p.type === 'second').value;
 
                     let entry = timezonesContainer.children[i];
                     if (!entry) {
@@ -98,9 +104,7 @@
                     }
 
                     entry.querySelector('.label').textContent = label;
-                    entry.querySelector('.day').textContent = dayComponent;
 
-                    const [hours, minutes, seconds] = timeComponent.split(':');
                     const digits = [
                         ['#h0', hours[0]],
                         ['#h1', hours[1]],
@@ -108,12 +112,39 @@
                         ['#m1', minutes[1]],
                         ['#s0', seconds[0]],
                         ['#s1', seconds[1]],
+                        ['#mon0', month[0]],
+                        ['#mon1', month[1]],
+                        ['#day0', day[0]],
+                        ['#day1', day[1]],
+                        ['#y0', year[0]],
+                        ['#y1', year[1]],
+                        ['#y2', year[2]],
+                        ['#y3', year[3]]
                     ];
+
+                    const separators = [
+                        ['#dot0', `${onOrOff}-dot`],
+                        ['#dot1', `${onOrOff}-dot`],
+                        ['#period0', `${onOrOff}-period`],
+                        ['#period1', `${onOrOff}-period`]
+
+                    ]
+
+
                     for (const [selector, digit] of digits) {
                         const source = `assets/${digit}.svg`;
                         if (loadedImages.has(source)) {
                             entry.querySelector(selector).src = source;
                         }
+                    }
+
+                    for (const [selector, imageName] of separators) {
+                        const img = entry.querySelector(selector);
+                        const source = `assets/${imageName}.svg`;
+                        if (img) {
+                            img.src = source;
+                        }
+
                     }
 
                     if (timezone === me) {
@@ -124,8 +155,12 @@
 
             document.addEventListener('DOMContentLoaded', async () => {
                 await imageLoading;
-                consoleTimes(new Date());
-                setInterval(() => consoleTimes(new Date()), 1000);
+                let isOn = true;
+                consoleTimes(new Date(), isOn);
+                setInterval(() => {
+                    isOn = !isOn;
+                    consoleTimes(new Date(), isOn);
+                }, 1000);
             });
         </script>
     </head>
@@ -153,12 +188,26 @@
             <div>
                 <img id="h0" src="assets/0.svg" height="50" />
                 <img id="h1" src="assets/0.svg" height="50" />
-                <img id="dot" src="assets/on-dot.svg" height="50" />
+                <img id="dot0" src="assets/on-dot.svg" height="50" />
                 <img id="m0" src="assets/0.svg" height="50" />
                 <img id="m1" src="assets/0.svg" height="50" />
-                <img id="dot" src="assets/on-dot.svg" height="50" />
+                <img id="dot1" src="assets/on-dot.svg" height="50" />
                 <img id="s0" src="assets/0.svg" height="50" />
                 <img id="s1" src="assets/0.svg" height="50" />
+
+                <br/>
+
+
+                <img id="mon0" src="assets/0.svg" height="15" />
+                <img id="mon1" src="assets/0.svg" height="15" />
+                <img id="period0" src="assets/on-period.svg" height="15" />
+                <img id="day0" src="assets/0.svg" height="15" />
+                <img id="day1" src="assets/0.svg" height="15" />
+                <img id="period1" src="assets/on-period.svg" height="16" />
+                <img id="y0" src="assets/0.svg" height="15" />
+                <img id="y1" src="assets/0.svg" height="15" />
+                <img id="y2" src="assets/0.svg" height="15" />
+                <img id="y3" src="assets/0.svg" height="15" />
             </div>
             <div>
                 <span class="day"></span>
